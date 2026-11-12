@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Heavens & Earth — Flat Earth Dome Explorer",
+  "version": "1.7.0",
+  "description": "Interactive 3D flat-earth dome model with the real sky: live map, terrain and clouds, firmament and fixed stars, Sun, Moon, ISS, eclipses and the cosmos of the religious texts.",
+  "action": {
+    "default_title": "Open Heavens & Earth",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://celestrak.org/*",
+    "https://nasa-public-data.s3.amazonaws.com/*",
+    "https://services.swpc.noaa.gov/*",
+    "https://tiles.maps.eox.at/*",
+    "https://gibs.earthdata.nasa.gov/*",
+    "https://view.eumetsat.int/*",
+    "https://s3.amazonaws.com/*"
+  ]
+}
