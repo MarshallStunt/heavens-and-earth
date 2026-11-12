@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Torus field tests</title>
+  <style>
+    :root { color-scheme: dark; --bg: #05070f; --text: #e6ecff; --muted: #8d9bc2; --ok: #5fe39a; --bad: #ff6b7d; }
+    body { margin: 0; padding: 24px; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, sans-serif; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p { color: var(--muted); margin: 0 0 16px; }
+    li { margin: 6px 0; list-style: none; }
+    .ok::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+    .bad::before { content: "✗ "; color: var(--bad); font-weight: 700; }
+    small { color: var(--muted); }
+    #sum { font-weight: 600; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Torus field — test checklist</h1>
+  <p>Runs the field module on its own (no 3D scene). Open from the extension folder: chrome-extension://&lt;id&gt;/tests/torusField.test.html, or any local web server.</p>
+  <ul id="out"></ul>
+  <div id="sum"></div>
+  <script type="module" src="./torusField.test.js"></script>
+</body>
+</html>

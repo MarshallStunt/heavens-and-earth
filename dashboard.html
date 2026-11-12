@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heavens &amp; Earth</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="">
+        <div>
+          <h1>Heavens &amp; Earth</h1>
+          <p id="subtitle">Interactive flat-earth explorer</p>
+        </div>
+      </div>
+      <div class="clock">
+        <div id="clockDate">—</div>
+        <div id="clockTime">--:--:--</div>
+        <span>UTC · simulated</span>
+      </div>
+      <div class="transport">
+        <button id="btnNow" class="ghost" title="Jump to the real current time">Now</button>
+        <button id="btnPlay" class="primary" title="Play / pause (Space)">❚❚</button>
+        <select id="speed" title="Simulation speed">
+          <option value="1">1× real time</option>
+          <option value="60">1 min / s</option>
+          <option value="600">10 min / s</option>
+          <option value="3600" selected>1 hour / s</option>
+          <option value="21600">6 hours / s</option>
+          <option value="86400">1 day / s</option>
+        </select>
+      </div>
+    </header>
+
+    <aside class="panel left">
+      <section>
+        <h2>View</h2>
+        <div class="seg" id="views">
+          <button data-view="overview" class="on">Overview</button>
+          <button data-view="top">Top-down</button>
+          <button data-view="wall">Ice wall</button>
+          <button data-view="side">Side view</button>
+          <button data-view="follow">Follow sun</button>
+          <button data-view="observer" class="feature">Stand here &amp; look up</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="tAutoRotate"><span></span>Auto-rotate</label>
+      </section>
+      <section>
+        <h2>Time</h2>
+        <div class="slider">
+          <div class="slabel"><span>Day of year (from 21 Mar)</span><b id="doyOut">—</b></div>
+          <input type="range" id="doy" min="1" max="366" step="1">
+          <div class="ticks"><span>Mar 21</span><span>Jun</span><span>Sep</span><span>Dec</span><span>Mar 20</span></div>
+        </div>
+        <div class="slider">
+          <div class="slabel"><span>Time of day (UTC)</span><b id="todOut">—</b></div>
+          <input type="range" id="tod" min="0" max="1439" step="1">
+          <div class="ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+        </div>
+        <div class="presets">
+          <button data-date="03-20">Equinox · Mar</button>
+          <button data-date="06-21">Solstice · Jun</button>
+          <button data-date="09-22">Equinox · Sep</button>
+          <button data-date="12-21">Solstice · Dec</button>
+        </div>
+      </section>
+      <section>
+        <h2>Earth <span class="pill gold">map · terrain · clouds</span></h2>
+        <div class="field"><label for="mapStyle">Map</label>
+          <select id="mapStyle">
+            <option value="satellite">Satellite (Sentinel-2 cloudless, zoomable)</option>
+            <option value="gleason">Gleason's map, 1892</option>
+          </select></div>
+        <p class="pnote" id="satCredit" hidden>Scroll to zoom in where the pointer is; detail sharpens down to ~10 m per pixel.
+          Imagery: <a href="https://s2maps.eu" target="_blank" rel="noopener">EOxCloudless 2025</a> by EOX IT Services GmbH
+          (contains modified Copernicus Sentinel data 2025), <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.</p>
+        <div class="slider">
+          <div class="slabel"><span>Terrain height</span><b id="terrExagOut">—</b></div>
+          <input type="range" id="terrExag" min="1" max="50" step="1" value="50">
+        </div>
+        <details class="more"><summary>More about this</summary><p class="pnote">Mountains and valleys from real elevation data (AWS Terrain Tiles: SRTM, GMTED, ETOPO1), sharper as you zoom (to ~10 m). ×1 is true scale — Everest 8.85 km stands 0.04% of the disc's width — so the relief shows best close up; raise it to see it from afar.</p></details>
+        <label class="toggle"><input type="checkbox" id="tClouds" checked><span></span>Clouds (live satellite infrared)</label>
+        <div class="slider">
+          <div class="slabel"><span>Cloud height</span><b id="cloudExagOut">—</b></div>
+          <input type="range" id="cloudExag" min="1" max="100" step="1" value="30">
+        </div>
+        <div class="pininfo"><div style="grid-column:1/-1"><span>Clouds</span><b id="cloudSrc">loading…</b></div></div>
+        <details class="more"><summary>More about this</summary><p class="pnote">Cloud tops from the weather satellites' infrared channel (day and night), placed at their real height: tops 0.6–17 km (≈ 0.4–10.5 mi). ×1 is true scale. Thin low cloud and fog are under-shown; no data poleward of ~75°.</p></details>
+      </section>
+      <section>
+        <h2>Layers</h2>
+        <div class="subhead">Sky &amp; firmament</div>
+        <label class="toggle"><input type="checkbox" id="tDome" checked><span></span>Dome / firmament</label>
+        <label class="toggle"><input type="checkbox" id="tFixedStars" checked><span></span>Fixed stars (outside the dome)</label>
+        <label class="toggle"><input type="checkbox" id="tStars"><span></span>Star wheel</label>
+        <label class="toggle"><input type="checkbox" id="tZodiac" checked><span></span>Zodiac</label>
+        <label class="toggle"><input type="checkbox" id="tPlanets" checked><span></span>Planets (wandering stars)</label>
+        <div class="subhead">Sun &amp; Moon</div>
+        <label class="toggle"><input type="checkbox" id="tLight" checked><span></span>Sun spotlight</label>
+        <label class="toggle"><input type="checkbox" id="tPath"><span></span>Sun &amp; moon circuits, trails</label>
+        <label class="toggle"><input type="checkbox" id="tAnalemma"><span></span>Sun analemma</label>
+        <label class="toggle"><input type="checkbox" id="tGrid" checked><span></span>Highlight tropics</label>
+        <label class="toggle"><input type="checkbox" id="tNodes"><span></span>Rahu &amp; Ketu nodes, shadow body</label>
+        <div class="subhead">Earth &amp; above</div>
+        <label class="toggle"><input type="checkbox" id="tWall" checked><span></span>Ice wall</label>
+        <label class="toggle"><input type="checkbox" id="tAurora" checked><span></span>Aurora (north &amp; south)</label>
+        <label class="toggle"><input type="checkbox" id="tISS"><span></span>ISS · live, real position &amp; altitude</label>
+        <div class="subhead">Symbols</div>
+        <label class="toggle"><input type="checkbox" id="tYinYang"><span></span>Yin &amp; Yang (Sun &amp; Moon)</label>
+        <label class="toggle"><input type="checkbox" id="tChakras"><span></span>Seven chakras (outer boundary axis)</label>
+        <div class="subhead">Display</div>
+        <label class="toggle"><input type="checkbox" id="tLabels" checked><span></span>Labels</label>
+      </section>
+      <section>
+        <h2>Trails <span class="pill gold">how long paths stay</span></h2>
+        <div id="trailRows"></div>
+        <button id="trailsReset" class="ghostbtn">Reset to defaults</button>
+      </section>
+      <section>
+        <h2>Aurora <span class="pill gold">northern &amp; southern lights</span></h2>
+        <div class="slider">
+          <div class="slabel"><span>Geomagnetic activity</span><b id="auroraKpOut">—</b></div>
+          <input type="range" id="auroraKp" min="0" max="9" step="1" value="3">
+        </div>
+        <div class="slider">
+          <div class="slabel"><span>Curtain height</span><b id="auroraExagOut">—</b></div>
+          <input type="range" id="auroraExag" min="1" max="10" step="1" value="4">
+        </div>
+        <div class="pininfo"><div style="grid-column:1/-1"><span>Source</span><b id="auroraSrc">—</b></div></div>
+        <details class="more"><summary>More about this</summary><p class="pnote">Near the present the curtains are placed from NOAA's live OVATION aurora model (real shape, width and position, updated every 5 min). For other dates: the oval round the geomagnetic pole (80.8°N 72.7°W in 2025, drifting), sized by the Kp NOAA measured then (last ~7 days) or by the slider. Lower border 100 km, green ~125 km, red ~240 km, top 250–475 km with activity; visible where the sun is >6° below the horizon.</p></details>
+      </section>
+      <section>
+        <h2>Religious texts</h2>
+        <div class="field"><label for="scriptureSel">Show the cosmos as described in</label>
+          <select id="scriptureSel">
+            <option value="none">Off</option>
+            <option value="all">All texts together</option>
+            <optgroup label="Abrahamic">
+              <option value="bible">Bible</option>
+              <option value="talmud">Talmud</option>
+              <option value="enoch">Book of Enoch</option>
+              <option value="quran">Quran</option>
+            </optgroup>
+            <optgroup label="Indian">
+              <option value="purana">Hindu Puranas</option>
+              <option value="gita">Bhagavad Gita</option>
+              <option value="buddhist">Buddhist (Abhidharmakośa)</option>
+              <option value="jain">Jain</option>
+            </optgroup>
+            <optgroup label="Other traditions">
+              <option value="zoro">Zoroastrian (Bundahishn)</option>
+              <option value="norse">Norse (Prose Edda)</option>
+              <option value="egypt">Ancient Egyptian</option>
+              <option value="meso">Mesopotamian (Enūma Eliš)</option>
+              <option value="china">Chinese (Gaitian)</option>
+              <option value="mason">Freemasonry (lodge symbolism)</option>
+            </optgroup>
+            <optgroup label="Modern teachers">
+              <option value="bonacci">Santos Bonacci (Syncretism)</option>
+            </optgroup>
+          </select></div>
+        <div id="scriptureNote" class="scNote" hidden></div>
+      </section>
+      <section>
+        <h2>Settings <span class="pill gold">saved automatically</span></h2>
+        <div class="cfgbtns">
+          <button id="cfgSave" class="ghostbtn" title="Download your current settings as a file">Save file</button>
+          <button id="cfgLoad" class="ghostbtn" title="Load settings from a file">Load file</button>
+          <button id="cfgReset" class="ghostbtn danger" title="Reset everything to defaults">Reset all</button>
+        </div>
+        <input type="file" id="cfgFile" accept="application/json,.json" hidden>
+        <p class="pnote" id="cfgMsg">Every change is remembered when you reload.</p>
+      </section>
+      <section class="about">
+        <h2>The model</h2>
+        <dl>
+          <dt>Earth</dt><dd>flat, stationary</dd>
+          <dt>Centre</dt><dd>North Pole</dd>
+          <dt>Pole → ice wall</dt><dd id="poleWall">—</dd>
+          <dt>Equator length</dt><dd id="equatorC">—</dd>
+          <dt>Ice-wall rim</dt><dd id="rimC">—</dd>
+          <dt>Sun &amp; moon size</dt><dd id="lumDiam">—</dd>
+          <dt>Sun &amp; moon altitude</dt><dd id="sunAlt">—</dd>
+          <dt>Sunlit area</dt><dd id="lightR">—</dd>
+        </dl>
+        <details class="more"><summary>More about this</summary><p>Sun and moon are small, local luminaries circling above the disc; the moon gives its own cold light. Stars and planets are lights in the firmament turning around Polaris. Map: Sentinel-2 cloudless satellite imagery (EOX), or Gleason's New Standard Map of the World (1892, Leventhal Map &amp; Education Center). Dome height, field shape and spotlight radius are illustrative; positions and times are real.</p></details>
+      </section>
+    </aside>
+
+    <main id="stage">
+      <canvas id="scene"></canvas>
+      <div id="labels"></div>
+      <div class="mechcard obscard" id="obsCard">
+        <button id="obsClose" title="Leave">×</button>
+        <button id="obsMin" title="Collapse">▾</button>
+        <h3>Standing at <span id="obsPlace">—</span></h3>
+        <span class="tag">eye-level view · drag to look · scroll to zoom · arrow keys</span>
+        <div class="obsloc"><input id="obsLat" type="number" step="0.1" min="-90" max="90" title="Latitude (°N +, °S −)"><input id="obsLon" type="number" step="0.1" min="-180" max="180" title="Longitude (°E +, °W −)"><button id="obsGo">Go</button></div>
+        <div class="seg obslook"><button data-look="sun">Sun</button><button data-look="moon">Moon</button><button data-look="polaris">Polaris</button><button data-look="zenith">Straight up</button><button data-look="north">North</button></div>
+        <div class="obsrow"><span>Looking</span><b id="obsLookOut">—</b></div>
+        <table class="obstable">
+          <tr><th></th><th>In this model</th><th>Measured from here</th></tr>
+          <tr><td>☀ Sun</td><td id="obsSunModel">—</td><td id="obsSunReal">—</td></tr>
+          <tr><td>☾ Moon</td><td id="obsMoonModel">—</td><td id="obsMoonReal">—</td></tr>
+          <tr><td>★ Polaris</td><td id="obsPolModel">—</td><td id="obsPolReal">—</td></tr>
+        </table>
+        <details class="more"><summary>More about this</summary><p class="pnote obsnote">Change place with the boxes, the Places list, or by clicking the map in another view. "Measured" is what someone standing there actually sees (astronomy-engine; the Moon is within ~1° because parallax is left out). Sun and Moon are drawn at their model size here (32 mi across); elsewhere they are enlarged to be visible.</p></details>
+      </div>
+      <div class="scalebox">
+        <div id="scaleBar" hidden>
+          <div class="sbar"><i id="scaleMi"></i><span id="scaleMiT">—</span></div>
+          <div class="sbar"><i id="scaleKm"></i><span id="scaleKmT">—</span></div>
+          <div class="snote" id="scaleNote">—</div>
+        </div>
+        <button id="measBtn" class="measbtn" title="Click two places on the map to measure the real distance between them">📏 Measure distance</button>
+        <div id="measOut" class="measout"></div>
+      </div>
+      <div class="hud" id="hover">Hover the disc for coordinates</div>
+      <div class="legend">
+        <span><i style="background:#ffd56b"></i>Sun</span>
+        <span><i style="background:#c9d6ea"></i>Moon</span>
+        <span><i style="background:#ff5d73"></i>Pin</span>
+        <span><i style="background:#5fd6ff"></i>Torus field</span>
+        <span><i style="background:#f3c46b"></i>Zodiac</span>
+        <span><i class="dash"></i>Tropics</span>
+      </div>
+    </main>
+
+    <aside class="panel right">
+      <div class="tiles">
+        <div class="tile">
+          <h3>Sun over</h3>
+          <div class="big" id="sunPos">—</div>
+          <div class="sub" id="sunPos2">—</div>
+        </div>
+        <div class="tile">
+          <h3>Moon</h3>
+          <div class="big" id="moonPhase">—</div>
+          <div class="sub" id="moonIllum">—</div>
+        </div>
+        <div class="tile">
+          <h3>Sun circuit</h3>
+          <div class="big" id="season">—</div>
+          <div class="sub" id="decl">—</div>
+        </div>
+        <div class="tile">
+          <h3>Sun in zodiac</h3>
+          <div class="big" id="sunSign">—</div>
+          <div class="sub" id="sunSign2">—</div>
+        </div>
+      </div>
+
+      <section>
+        <h2>Pin <span class="pill" id="pinPlace">—</span></h2>
+        <div class="pininfo">
+          <div><span>Latitude</span><b id="pinLat">—</b></div>
+          <div><span>Longitude</span><b id="pinLon">—</b></div>
+          <div><span>Local solar time (sundial)</span><b id="pinTime">—</b></div>
+          <div><span>Sun state</span><b id="pinSun">—</b></div>
+          <div><span>Ground distance to sun</span><b id="pinDist">—</b></div>
+          <div><span>Sun elevation</span><b id="pinElev">—</b></div>
+        </div>
+        <div class="places" id="places"></div>
+      </section>
+      <section>
+        <h2>Overhead map</h2>
+        <canvas id="minimap"></canvas>
+      </section>
+      <section>
+        <h2>Daylight hours across the year</h2>
+        <canvas id="chart"></canvas>
+        <div class="chartlegend"><span><i class="c1"></i>Pin latitude</span><span><i class="c2"></i>Equator</span></div>
+      </section>
+      <section>
+        <h2>Sun analemma <span class="pill gold">same time every day</span></h2>
+        <canvas id="anaChart"></canvas>
+        <p class="pnote" id="anaInfo">—</p>
+        <p class="pnote" id="anaBand">—</p>
+        <p class="pnote">Where the sun stands over the ground at the current clock time, every day of the year (it follows the clock).</p>
+        <div class="slider">
+          <div class="slabel"><span>Sun path tilt</span><b id="sunTiltOut">—</b></div>
+          <input type="range" id="sunTilt" min="32" max="89" step="0.5" value="42.5">
+        </div>
+        <p class="pnote" id="sunTiltInfo">—</p>
+        <details class="more"><summary>More about this</summary><p class="pnote">How steeply the Sun's path (and the analemma on it) leans: smaller = steeper, a bigger height difference between June and December. 42.5° is the model's default. For comparison, the Sun's real size change through the year implies about 88.3° (only ~100 mi between June and December).</p></details>
+        <button id="anaView" class="ghostbtn">Analemma view</button>
+      </section>
+      <section>
+        <h2>Eclipses <span class="pill" id="eclPill">—</span></h2>
+        <div class="pininfo" id="eclNow"></div>
+        <p class="pnote" id="eclAgree"></p>
+        <div class="ecllist" id="eclList"></div>
+        <details class="more"><summary>More about this</summary><p class="pnote">Predicted by the tori. The Moon's ring rides 4% above the Sun's layer; at the two nodes, Rahu ☊ and Ketu ☋ (drifting round every 18.6 years), it dips through it when it meets the Sun — a solar eclipse, cast by the 3D Moon. Lunar eclipses come from the shadow body on the hub axis, which always sits on the line from the Sun to the point opposite it. Shadow positions on the map are approximate; the panel shows how far they are from the real ones.</p></details>
+      </section>
+      <section>
+        <h2>Wandering stars <span class="pill gold">tropical zodiac</span></h2>
+        <div id="wanderers"></div>
+      </section>
+      <section>
+        <h2>ISS <span class="pill" id="issSrc">—</span></h2>
+        <div class="pininfo">
+          <div><span>Over</span><b id="issPos">—</b></div>
+          <div><span>Altitude</span><b id="issAlt">—</b></div>
+          <div><span>Speed</span><b id="issSpd">—</b></div>
+          <div><span>Orbits per day</span><b id="issRev">—</b></div>
+          <div><span>NASA trajectory covers</span><b id="issNasa">—</b></div>
+          <div><span>Backup TLE epoch</span><b id="issEpoch">—</b></div>
+          <div><span>Position accuracy</span><b id="issAcc">—</b></div>
+          <div><span>Height range (±1 orbit)</span><b id="issRange">—</b></div>
+        </div>
+        <canvas id="issAltChart"></canvas>
+        <button id="issFollow" class="ghostbtn">Follow the ISS (real size)</button>
+        <details class="more"><summary>More about this</summary><p class="pnote">The real ISS, from live data (NASA's precise trajectory; CelesTrak elements as a backup): exactly over its real position on the map, at its real altitude (257–272 mi, on the scale bar's scale), with a line down to the point beneath it. The station itself is drawn at its true size — 109 m across its solar-array truss, ~73 m of modules — flying as the real one does (modules along the direction of travel). From afar a glowing marker shows where it is; zoom in, or use Follow the ISS, to see the station. Its trail and the Pattern Lab's ISS paths are the real path at the real altitude.</p></details>
+      </section>
+      <section id="fieldSection">
+        <h2>Torus field <span class="pill" id="fieldPill">preview</span></h2>
+        <p class="pnote">Paced by the real sky: the Sun, Moon and ISS keep their true timing, so eclipses happen when they really do.</p>
+        <div class="fieldviews" id="fieldViews">
+          <div class="fv-cap">Side view · the shells in cross-section, flow hub → firmament → ice wall → back under the disc</div>
+          <canvas id="fieldSide"></canvas>
+          <div class="fv-cap">Top view · seasonal rings, aurora ovals, ISS last 24 h</div>
+          <canvas id="fieldTop"></canvas>
+        </div>
+        <label class="toggle"><input type="checkbox" id="tFieldIssTrail" checked><span></span>Show ISS trail (24 h)</label>
+        <div class="shells"><div class="fv-cap">Shells (inner → outer) · switch each on or off</div>
+          <label class="toggle shellrow"><input type="checkbox" id="tShell_outer" checked><span></span><i class="sw" style="background:#ff7ad1"></i><em>Outer boundary (vortex)</em><b id="shS_outer">—</b></label>
+        </div>
+        <div class="pininfo" id="fieldInfo"></div>
+        <details class="more"><summary>More about this</summary><p class="pnote">Illustrative: one hub torus whose outer boundary fills the firmament. The field turns westward round the hub once a day, carrying the Sun and Moon, and aurora glows where field lines meet the ground. The Sun, Moon and ISS themselves are always at their real positions and times.</p></details>
+      </section>
+      <section>
+        <h2>Pattern lab <span class="pill gold">over the years</span></h2>
+        <div class="field"><label for="pattern">Trace</label>
+          <select id="pattern">
+            <option value="none">None</option>
+            <option value="sun1">Sun path · 1 year</option>
+            <option value="sun8">Sun path · 8 years</option>
+            <option value="moon1">Moon path · 1 day</option>
+            <option value="moon27">Moon path · 1 month (27.3 days)</option>
+            <option value="moon365">Moon path · 1 year</option>
+            <option value="moon19">Moon path · 18.6 years</option>
+            <option value="analemma">Sun, same time daily · 1 year</option>
+            <option value="venus">Venus rosette · 8 years</option>
+            <option value="mercury">Mercury rosette · 7 years</option>
+            <option value="mars">Mars rosette · 16 years</option>
+            <option value="jupiter">Jupiter rosette · 12 years</option>
+            <option value="saturn">Saturn rosette · 30 years</option>
+            <option value="iss1">ISS path · 1 day</option>
+            <option value="iss3">ISS path · 3 days</option>
+            <option value="iss7">ISS path · 7 days</option>
+            <option value="iss14">ISS path · 14 days</option>
+            <option value="iss30">ISS path · 30 days</option>
+          </select></div>
+        <div class="field"><label for="overlaySel">Compare with</label>
+          <select id="overlaySel">
+            <option value="none">Nothing</option>
+            <option value="flower">Flower of Life</option>
+            <option value="flower3d">Flower of Life · 3D</option>
+          </select></div>
+        <p class="pnote" id="patternNote"></p>
+        <div class="slider">
+          <div class="slabel"><span>Planet path height (above/below ecliptic)</span><b id="patZOut">—</b></div>
+          <input type="range" id="patZ" min="1" max="20" step="1" value="6">
+        </div>
+        <button id="patternTop" class="ghostbtn">View from above</button>
+      </section>
+    </aside>
+  </div>
+  <script src="lib/astronomy.browser.min.js"></script>
+  <script src="lib/satellite.min.js"></script>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
